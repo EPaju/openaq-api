@@ -1,6 +1,6 @@
 ﻿# Ilmanlaatudatan REST API
 
-Tämä sovellus lukee aiemmin tallennettua OpenAQ-dataa SQLite-tietokannasta.
+Sovellus lukee aiemmin tallennettua OpenAQ-dataa SQLite-tietokannasta.
 
 ## Asennus
 
@@ -69,7 +69,7 @@ Päivän keskiarvo nimillä:
 GET /daily-average/by-name?country=United States&city=New York&location=Queens College&sensor=pm25&date=2024-01-15
 ```
 
-Lisäsin nämä nimihakua varten, jotta sovellusta voi käyttää helpommin ilman että tarvitsee muistaa pelkkiä id-numeroita.
+Nämä nimihakua varten, jotta tulevaa sovellusta voi käyttää helpommin!
 
 ## Endpointit kaupungilla
 
@@ -100,4 +100,3 @@ DATABASE_PATH=../air_quality.sqlite
 ## Testaus
 
 testattu uusilla muokkauksilla
-
