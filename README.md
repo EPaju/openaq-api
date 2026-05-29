@@ -1,4 +1,4 @@
-# Ilmanlaatudatan REST API
+﻿# Ilmanlaatudatan REST API
 
 Tämä sovellus lukee aiemmin tallennettua OpenAQ-dataa SQLite-tietokannasta.
 
@@ -76,3 +76,8 @@ Lisäsin nämä nimihakua varten, jotta sovellusta voi käyttää helpommin ilma
 ```env
 DATABASE_PATH=../air_quality.sqlite
 ```
+
+## Testaus
+
+testattu uusilla muokkauksilla
+
