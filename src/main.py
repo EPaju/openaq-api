@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 
 
-# Luetaan .env-tiedosto, josta saadaan tietokannan polku.
+# Luetaan .env-tiedosto, josta tietokannan polku
 load_dotenv()
 
 app = FastAPI(
@@ -21,12 +21,12 @@ app = FastAPI(
 
 
 def database_path() -> Path:
-    # Jos DATABASE_PATH-arvoa ei ole annettu, kaytetaan oletuspolkua.
+    # Jos DATABASE_PATH-arvoa ei -> kaytetään oletuspolkua
     return Path(os.getenv("DATABASE_PATH", "../air_quality.sqlite"))
 
 
 def get_connection() -> sqlite3.Connection:
-    # Avataan yhteys SQLite-tietokantaan jokaisen pyynnon ajaksi.
+    # Avataan yhteys SQLite-tietokantaan jokaisen pyynnön ajaksi
     path = database_path()
     if not path.exists():
         raise HTTPException(
@@ -39,14 +39,14 @@ def get_connection() -> sqlite3.Connection:
 
 
 def day_bounds(selected_date: date) -> tuple[str, str]:
-    # Muutetaan valittu paiva alku- ja loppuajaksi, jotta SQL-haku rajaa yhden paivan.
+    # Muutetaan valittu päivä alku- ja loppuajaksi -> SQL-haku rajaa yhden päivän
     start = datetime.combine(selected_date, time.min, tzinfo=timezone.utc)
     end = start + timedelta(days=1)
     return start.isoformat().replace("+00:00", "Z"), end.isoformat().replace("+00:00", "Z")
 
 
 def row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
-    # SQLite palauttaa Row-olion, joten muutetaan se JSON-vastaukseen sopivaksi dictiksi.
+    # SQLite palauttaa Row-olion -> muutetaan JSON-vastaukseen sopivaksi dictiksi
     return {key: row[key] for key in row.keys()}
 
 
@@ -56,7 +56,7 @@ def find_location(
     city: str,
     location: str,
 ) -> sqlite3.Row:
-    # Haetaan mittauspaikka nimen perusteella, jotta kayttajan ei tarvitse tietaa id-numeroa.
+    # Haetaan mittauspaikka nimen perusteella -> käyttäjän ei tarvitse tietää id-numeroa
     row = connection.execute(
         """
         SELECT
@@ -85,7 +85,7 @@ def find_sensor(
     location_id: int,
     sensor: str,
 ) -> sqlite3.Row:
-    # Sensori voidaan hakea joko teknisella nimella, esim. pm25, tai nayttonimella.
+    # Sensori -> haku joko teknisellä nimellä tai nayttönimellä
     row = connection.execute(
         """
         SELECT id, parameter_name, parameter_display_name, unit
@@ -105,7 +105,7 @@ def find_sensor(
 
 
 def find_city(connection: sqlite3.Connection, city: str) -> sqlite3.Row:
-    # Kaupunkihaku on mobiilisovellusta varten, koska kaupungin nimi on helpompi antaa.
+    # Kaupunkihaku mobiilisovellusta varten -> kaupungin nimi helpompi antaa
     row = connection.execute(
         """
         SELECT
@@ -132,7 +132,7 @@ def health() -> dict[str, str]:
 
 @app.get("/places")
 def get_places() -> list[dict[str, Any]]:
-    # Tama endpoint auttaa katsomaan, mita paikkoja ja sensoreita tietokannassa on.
+    # Endpoint auttaa katsomaan, mitä paikkoja ja sensoreita tietokannassa on
     with get_connection() as connection:
         rows = connection.execute(
             """
@@ -161,7 +161,7 @@ def get_daily_measurements(
     location_id: int,
     selected_date: date = Query(alias="date"),
 ) -> dict[str, Any]:
-    # Alkuperainen tehtavan endpoint: haetaan yhden mittauspaikan yhden paivan mittaukset.
+    # Alkuperäinen tehtävän endpoint: haetaan yhden mittauspaikan yhden päivän mittaukset
     start, end = day_bounds(selected_date)
     with get_connection() as connection:
         rows = connection.execute(
@@ -203,7 +203,7 @@ def get_daily_measurements_by_name(
     location: str,
     selected_date: date = Query(alias="date"),
 ) -> dict[str, Any]:
-    # Sama haku kuin id-versiossa, mutta maa, kaupunki ja paikka annetaan nimina.
+    # Sama haku kuin id-versiossa, paitsi että maa, kaupunki ja paikka annetaan niminä
     start, end = day_bounds(selected_date)
     with get_connection() as connection:
         place = find_location(connection, country, city, location)
@@ -247,7 +247,7 @@ def get_daily_measurements_by_city(
     city: str,
     selected_date: date = Query(alias="date"),
 ) -> dict[str, Any]:
-    # Haetaan kaikki valitun kaupungin mittaukset yhdelta paivalta.
+    # Haetaan kaikki valitun kaupungin mittaukset yhdeltä päivältä
     start, end = day_bounds(selected_date)
     with get_connection() as connection:
         city_row = find_city(connection, city)
@@ -293,7 +293,7 @@ def get_daily_measurements_by_city(
 
 @app.get("/locations/{location_id}/measurements/count")
 def get_location_measurement_count(location_id: int) -> dict[str, int]:
-    # Lasketaan kaikki mittaukset yhdelle mittauspaikalle.
+    # Lasketaan kaikki mittaukset yhdelle mittauspaikalle
     with get_connection() as connection:
         row = connection.execute(
             """
@@ -317,7 +317,7 @@ def get_location_measurement_count_by_name(
     city: str,
     location: str,
 ) -> dict[str, Any]:
-    # Sama laskenta kuin id-versiossa, mutta paikka haetaan ensin nimella.
+    # Sama laskenta kuin id-versiossa, paitsi että paikka haetaan ensin nimellä
     with get_connection() as connection:
         place = find_location(connection, country, city, location)
         row = connection.execute(
@@ -341,7 +341,7 @@ def get_location_measurement_count_by_name(
 
 @app.get("/measurements/count/by-city")
 def get_measurement_count_by_city(city: str) -> dict[str, Any]:
-    # Lasketaan kaikki tietokannassa olevat mittaukset valitulle kaupungille.
+    # Lasketaan kaikki tietokannassa olevat mittaukset valitulle kaupungille
     with get_connection() as connection:
         city_row = find_city(connection, city)
         row = connection.execute(
@@ -368,7 +368,7 @@ def get_sensor_daily_average(
     sensor_id: int,
     selected_date: date = Query(alias="date"),
 ) -> dict[str, Any]:
-    # Lasketaan sensorin yhden paivan keskiarvo AVG-funktiolla.
+    # Sensorin yhden päivän keskiarvo AVG-funktiolla
     start, end = day_bounds(selected_date)
     with get_connection() as connection:
         row = connection.execute(
@@ -416,7 +416,7 @@ def get_sensor_daily_average_by_name(
     sensor: str,
     selected_date: date = Query(alias="date"),
 ) -> dict[str, Any]:
-    # Nimiversio paivan keskiarvosta: ensin haetaan paikka ja sensori, sitten lasketaan keskiarvo.
+    # Nimiversio päivän keskiarvosta: ensin paikka ja sensori ja sitten keskiarvo
     start, end = day_bounds(selected_date)
     with get_connection() as connection:
         place = find_location(connection, country, city, location)
@@ -464,7 +464,7 @@ def get_daily_average_by_city(
     sensor: str,
     selected_date: date = Query(alias="date"),
 ) -> dict[str, Any]:
-    # Kaupunkiversio keskiarvosta, jota mobiilisovellus voi kayttaa helpommin.
+    # Kaupunkiversio keskiarvosta -> mobiilisovellus voi kayttää helpommin
     start, end = day_bounds(selected_date)
     with get_connection() as connection:
         city_row = find_city(connection, city)
