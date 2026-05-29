@@ -97,6 +97,6 @@ GET /daily-average/by-city?city=New York&sensor=pm25&date=2024-01-15
 DATABASE_PATH=../air_quality.sqlite
 ```
 
-## Testaus
+## Tekoälyn käyttö
 
-testattu uusilla muokkauksilla
+Kysyin tekoälyltä apua, miten sovelluksesta voisi tehdä käyttäjäystävällisemmän, kun tajusin jälkeenpäin, että voisin käyttää samaa pohjaa myös edistynyt mobiiliohjelmointi-kurssilla. Sen perusteella lisäsin REST API:in endpointteja, joilla dataa voi hakea myös nimillä, kuten kaupungilla "New York", mittauspaikalla "Queens College" ja sensorilla "pm25", eikä pelkillä id-numeroilla.
