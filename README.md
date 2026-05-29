@@ -60,3 +60,6 @@ API käyttää samaa SQLite-tietokantaa kuin datan hakusovellus.
 ```env
 DATABASE_PATH=../air_quality.sqlite
 ```
+## Tekoälymerkintä
+
+Ymmärsin tehtävän aluksi väärin ja pyysin tekoälyltä apua miten saisin REST API:sta käyttäjäystävällisemmän, jonka avulla lisäsin lisää hakutoimintoja, mutta tajusinkin, ettei niistä ollut mitään hyötyä ja tekoälyllä muokkasin takaisin alkuperäiseen muotoon.
