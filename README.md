@@ -1,6 +1,6 @@
-﻿# Ilmanlaatudatan REST API
+# Ilmanlaatudatan REST API
 
-Sovellus lukee aiemmin tallennettua OpenAQ-dataa SQLite-tietokannasta.
+Tämä sovellus hakee aiemmin tallennettua OpenAQ-dataa SQLite-tietokannasta.
 
 ## Asennus
 
@@ -23,7 +23,7 @@ Swagger-sivu:
 http://127.0.0.1:8000/docs
 ```
 
-## Endpointit id-arvoilla
+## Endpointit
 
 ### Yhden päivän mittaukset
 
@@ -43,60 +43,20 @@ GET /locations/{location_id}/measurements/count
 GET /locations/{location_id}/sensors/{sensor_id}/daily-average?date=2024-01-15
 ```
 
-## Endpointit nimillä
+## Testaus
 
-Tallennetut paikat ja sensorit:
+Testattu arvoilla:
 
-```http
-GET /places
-```
-
-Yhden päivän mittaukset nimillä:
-
-```http
-GET /measurements/by-name?country=United States&city=New York&location=Queens College&date=2024-01-15
-```
-
-Mittausten lukumäärä nimillä:
-
-```http
-GET /measurements/count/by-name?country=United States&city=New York&location=Queens College
-```
-
-Päivän keskiarvo nimillä:
-
-```http
-GET /daily-average/by-name?country=United States&city=New York&location=Queens College&sensor=pm25&date=2024-01-15
-```
-
-Nämä nimihakua varten, jotta tulevaa sovellusta voi käyttää helpommin!
-
-## Endpointit kaupungilla
-
-Yhden päivän mittaukset kaupungin perusteella:
-
-```http
-GET /measurements/by-city?city=New York&date=2024-01-15
-```
-
-Kaupungin kaikkien mittausten lukumäärä:
-
-```http
-GET /measurements/count/by-city?city=New York
-```
-
-Kaupungin ja sensorin päivän keskiarvo:
-
-```http
-GET /daily-average/by-city?city=New York&sensor=pm25&date=2024-01-15
+```text
+location_id = 2178
+sensor_id = 3917
+date = 2024-01-15
 ```
 
 ## Tietokanta
 
+API käyttää samaa SQLite-tietokantaa kuin datan hakusovellus.
+
 ```env
 DATABASE_PATH=../air_quality.sqlite
 ```
-
-## Tekoälyn käyttö
-
-Kysyin tekoälyltä apua, miten sovelluksesta voisi tehdä käyttäjäystävällisemmän, kun tajusin jälkeenpäin, että voisin käyttää samaa pohjaa myös edistynyt mobiiliohjelmointi-kurssilla. Sen perusteella lisäsin REST API:in endpointteja, joilla dataa voi hakea myös nimillä, kuten kaupungilla "New York", mittauspaikalla "Queens College" ja sensorilla "pm25", eikä pelkillä id-numeroilla.
