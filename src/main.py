@@ -97,6 +97,26 @@ def find_sensor(
     return row
 
 
+def find_city(connection: sqlite3.Connection, city: str) -> sqlite3.Row:
+    row = connection.execute(
+        """
+        SELECT
+            c.id AS city_id,
+            c.name AS city_name,
+            co.name AS country_name,
+            co.code AS country_code
+        FROM cities c
+        JOIN countries co ON co.id = c.country_id
+        WHERE LOWER(c.name) = LOWER(?)
+        """,
+        (city,),
+    ).fetchone()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="City was not found.")
+    return row
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
@@ -211,6 +231,54 @@ def get_daily_measurements_by_name(
     }
 
 
+@app.get("/measurements/by-city")
+def get_daily_measurements_by_city(
+    city: str,
+    selected_date: date = Query(alias="date"),
+) -> dict[str, Any]:
+    start, end = day_bounds(selected_date)
+    with get_connection() as connection:
+        city_row = find_city(connection, city)
+        rows = connection.execute(
+            """
+            SELECT
+                co.name AS country,
+                c.name AS city,
+                l.id AS location_id,
+                l.name AS location,
+                m.id,
+                m.sensor_id,
+                s.parameter_name,
+                s.parameter_display_name,
+                m.measured_at_utc,
+                m.measured_at_local,
+                m.value,
+                m.unit,
+                m.latitude,
+                m.longitude,
+                m.source_name
+            FROM measurements m
+            JOIN sensors s ON s.id = m.sensor_id
+            JOIN locations l ON l.id = s.location_id
+            JOIN cities c ON c.id = l.city_id
+            JOIN countries co ON co.id = c.country_id
+            WHERE c.id = ?
+              AND m.measured_at_utc >= ?
+              AND m.measured_at_utc < ?
+            ORDER BY l.name, s.parameter_name, m.measured_at_utc
+            """,
+            (city_row["city_id"], start, end),
+        ).fetchall()
+
+    return {
+        "country": city_row["country_name"],
+        "city": city_row["city_name"],
+        "date": selected_date.isoformat(),
+        "count": len(rows),
+        "measurements": [row_to_dict(row) for row in rows],
+    }
+
+
 @app.get("/locations/{location_id}/measurements/count")
 def get_location_measurement_count(location_id: int) -> dict[str, int]:
     with get_connection() as connection:
@@ -253,6 +321,28 @@ def get_location_measurement_count_by_name(
         "city": place["city_name"],
         "location": place["location_name"],
         "location_id": place["location_id"],
+        "measurement_count": int(row["measurement_count"]),
+    }
+
+
+@app.get("/measurements/count/by-city")
+def get_measurement_count_by_city(city: str) -> dict[str, Any]:
+    with get_connection() as connection:
+        city_row = find_city(connection, city)
+        row = connection.execute(
+            """
+            SELECT COUNT(*) AS measurement_count
+            FROM measurements m
+            JOIN sensors s ON s.id = m.sensor_id
+            JOIN locations l ON l.id = s.location_id
+            WHERE l.city_id = ?
+            """,
+            (city_row["city_id"],),
+        ).fetchone()
+
+    return {
+        "country": city_row["country_name"],
+        "city": city_row["city_name"],
         "measurement_count": int(row["measurement_count"]),
     }
 
@@ -342,6 +432,55 @@ def get_sensor_daily_average_by_name(
         "location": place["location_name"],
         "location_id": place["location_id"],
         "sensor_id": row["sensor_id"],
+        "date": selected_date.isoformat(),
+        "parameter_name": row["parameter_name"],
+        "parameter_display_name": row["parameter_display_name"],
+        "unit": row["unit"],
+        "measurement_count": int(row["measurement_count"]),
+        "average_value": row["average_value"],
+    }
+
+
+@app.get("/daily-average/by-city")
+def get_daily_average_by_city(
+    city: str,
+    sensor: str,
+    selected_date: date = Query(alias="date"),
+) -> dict[str, Any]:
+    start, end = day_bounds(selected_date)
+    with get_connection() as connection:
+        city_row = find_city(connection, city)
+        row = connection.execute(
+            """
+            SELECT
+                c.name AS city,
+                s.parameter_name,
+                s.parameter_display_name,
+                s.unit,
+                COUNT(m.id) AS measurement_count,
+                AVG(m.value) AS average_value
+            FROM measurements m
+            JOIN sensors s ON s.id = m.sensor_id
+            JOIN locations l ON l.id = s.location_id
+            JOIN cities c ON c.id = l.city_id
+            WHERE c.id = ?
+              AND (
+                LOWER(s.parameter_name) = LOWER(?)
+                OR LOWER(s.parameter_display_name) = LOWER(?)
+              )
+              AND m.measured_at_utc >= ?
+              AND m.measured_at_utc < ?
+            GROUP BY c.id, s.parameter_name, s.parameter_display_name, s.unit
+            """,
+            (city_row["city_id"], sensor, sensor, start, end),
+        ).fetchone()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="No measurements were found for this city and sensor.")
+
+    return {
+        "country": city_row["country_name"],
+        "city": city_row["city_name"],
         "date": selected_date.isoformat(),
         "parameter_name": row["parameter_name"],
         "parameter_display_name": row["parameter_display_name"],

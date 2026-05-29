@@ -71,6 +71,26 @@ GET /daily-average/by-name?country=United States&city=New York&location=Queens C
 
 Lisäsin nämä nimihakua varten, jotta sovellusta voi käyttää helpommin ilman että tarvitsee muistaa pelkkiä id-numeroita.
 
+## Endpointit kaupungilla
+
+Yhden päivän mittaukset kaupungin perusteella:
+
+```http
+GET /measurements/by-city?city=New York&date=2024-01-15
+```
+
+Kaupungin kaikkien mittausten lukumäärä:
+
+```http
+GET /measurements/count/by-city?city=New York
+```
+
+Kaupungin ja sensorin päivän keskiarvo:
+
+```http
+GET /daily-average/by-city?city=New York&sensor=pm25&date=2024-01-15
+```
+
 ## Tietokanta
 
 ```env
