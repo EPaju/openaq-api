@@ -1,6 +1,6 @@
-# OpenAQ REST API
+# Ilmanlaatudatan REST API
 
-Tämä repositorio sisältää REST-rajapintasovelluksen, jolla haetaan `openaq-importer`-sovelluksen tallentamaa ilmanlaatudataa SQLite-tietokannasta.
+Tämä on tehtävän toinen sovellus. Se lukee aiemmin tallennettua ilmanlaatudataa SQLite-tietokannasta ja tarjoaa datan REST-rajapinnan kautta.
 
 ## Asennus
 
@@ -17,37 +17,43 @@ Copy-Item .env.example .env
 uvicorn src.main:app --reload
 ```
 
-Oletusosoite on:
+Sovellus käynnistyy yleensä osoitteeseen:
 
 `http://127.0.0.1:8000`
 
-Swagger-dokumentaatio:
+Swagger-sivu, josta endpointteja voi testata:
 
 `http://127.0.0.1:8000/docs`
 
 ## Endpointit
 
-### Mittauspaikan yhden päivän mittaukset
+### 1. Yhden päivän mittaukset
 
 ```http
 GET /locations/{location_id}/measurements?date=2024-01-15
 ```
 
-### Mittauspaikan kaikkien mittausten lukumäärä
+Tällä haetaan valitun mittauspaikan mittaukset yhdeltä päivältä.
+
+### 2. Mittausten lukumäärä
 
 ```http
 GET /locations/{location_id}/measurements/count
 ```
 
-### Sensorin päivittäinen keskiarvo valitulla mittauspaikalla
+Tällä haetaan, kuinka monta mittausta mittauspaikalla on yhteensä.
+
+### 3. Päivän keskiarvo
 
 ```http
 GET /locations/{location_id}/sensors/{sensor_id}/daily-average?date=2024-01-15
 ```
 
+Tämä laskee valitun mittauspaikan ja sensorin mittausten keskiarvon yhdeltä päivältä.
+
 ## Tietokanta
 
-API lukee samaa SQLite-tietokantaa kuin importteri. Muuta polku `.env`-tiedostossa:
+API käyttää samaa tietokantaa kuin datan hakusovellus.
 
 ```env
 DATABASE_PATH=../air_quality.sqlite
